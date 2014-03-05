@@ -1,0 +1,25 @@
+{
+  "name": "editor3-meshtools",
+  "version": "0.1.0",
+  "description": "tools specific to dealing with meshes in editor3",
+  "keywords": [],
+  "main": "editor3-meshtools.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tmpvar/editor3-meshtools.git"
+  },
+  "author": "Elijah Insua <tmpvar@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tmpvar/editor3-meshtools/issues"
+  },
+  "devDependencies": {
+    "mocha": "1.x",
+    "istanbul": "*"
+  },
+  "scripts": {
+    "test": "node_modules/mocha/bin/mocha test/test.js -R spec",
+    "cover": "istanbul cover _mocha -- test/test.js -R spec",
+    "minify": "browserify -e editor3-meshtools.js | uglifyjs > editor3-meshtools.min.js"
+  }
+}
