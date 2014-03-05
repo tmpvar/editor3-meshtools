@@ -1,18 +1,19 @@
-var meshtools = window.tools = {};
+var meshtools = {};
 
 if (typeof require !== 'undefined') {
-  var THREE = require('three');
   var Vec2 = require('vec2');
 }
 
 var projector = new THREE.Projector();
 
 meshtools.mouseIntersections = function(root, camera, vec2) {
+
   var vector = new THREE.Vector3(
-    (vec2.x / window.innerWidth) * 2 - 1,
-    -(vec2.y / window.innerHeight) * 2 + 1,
+    (vec2.x / camera.canvas.clientWidth) * 2 - 1,
+    -(vec2.y / camera.canvas.clientHeight) * 2 + 1,
     .5
   );
+
   projector.unprojectVector( vector, camera );
 
   var raycaster = new THREE.Raycaster(
@@ -20,8 +21,8 @@ meshtools.mouseIntersections = function(root, camera, vec2) {
     vector.sub( camera.position ).normalize()
   );
 
-  var intersects = raycaster.intersectObject(root, true);
 
+  var intersects = raycaster.intersectObject(root, true);
   return intersects;
 };
 
@@ -64,22 +65,23 @@ THREE.Vector3.prototype.near = function(b, threshold) {
 
   threshold = threshold || .000000001;
 
-  var x = Math.abs(Vec2.clean(this.x - b.x));
-  var y = Math.abs(Vec2.clean(this.y - b.y));
-  var z = Math.abs(Vec2.clean(this.z - b.z));
+  var x = Math.abs(this.x - b.x);
+  var y = Math.abs(this.y - b.y);
+  var z = Math.abs(this.z - b.z);
 
   return (x < threshold && y < threshold && z < threshold);
 };
 
+var coplanarMatrix = new THREE.Matrix4();
 meshtools.pointsCoplanar = function(a, b, c, d) {
-  var mat = new THREE.Matrix4(
+  coplanarMatrix.set(
     a.x, a.y, a.z, 1,
     b.x, b.y, b.z, 1,
     c.x, c.y, c.z, 1,
     d.x, d.y, d.z, 1
   );
 
-  return Math.abs(mat.determinant()) < 0.1;
+  return Math.abs(coplanarMatrix.determinant()) < 0.1;
 };
 
 meshtools.facesAreCoplanar = function(a, b, c, a2, b2, c2) {
@@ -101,23 +103,26 @@ meshtools.computeCoplanarFaces = function(mesh) {
   // if the face normals don't match, then they are not
   // going to be coplanar
 
+  // TODO PERF: I think if we sort by normal before this we can
+  //            break early and avoid a ton of overhead
+
   var coplanar = [];
   for (i=0; i<faces.length; i++) {
 
     var combined = false;
     for (j=0; j<coplanar.length; j++) {
-      if (coplanar[j][0].normal.clean().equals(faces[i].normal.clean())) {
+      if (coplanar[j][0].normal.near(faces[i].normal, .00001)) {
 
         // If the normals are matching then we have a candidate for
         // a coplanar match
 
         var res = meshtools.facesAreCoplanar(
-          verts[faces[i].a].clean(),
-          verts[faces[i].b].clean(),
-          verts[faces[i].c].clean(),
-          verts[coplanar[j][0].a].clean(),
-          verts[coplanar[j][0].b].clean(),
-          verts[coplanar[j][0].c].clean()
+          verts[faces[i].a],
+          verts[faces[i].b],
+          verts[faces[i].c],
+          verts[coplanar[j][0].a],
+          verts[coplanar[j][0].b],
+          verts[coplanar[j][0].c]
         );
 
         if (res) {
@@ -161,7 +166,8 @@ meshtools.computeNgonHelpers = function(sourceMesh) {
 
   var faceGeometries = meshtools.computeCoplanarFaces(sourceMesh);
 
-  faceGeometries.forEach(function(obj) {
+  for (var i = 0; i<faceGeometries.length; i++) {
+    var obj = faceGeometries[i];
     var geometry = new THREE.Geometry();
 
     var mesh = new THREE.Mesh(
@@ -174,9 +180,9 @@ meshtools.computeNgonHelpers = function(sourceMesh) {
       })
     );
 
-    var map = {};
+    for (var j = 0; j<obj.length; j++) {
 
-    obj.forEach(function(face, idx) {
+      var face = obj[j];
       var clone = face.clone();
 
       var zFighting = face.normal.clone().multiplyScalar(.01);
@@ -199,7 +205,7 @@ meshtools.computeNgonHelpers = function(sourceMesh) {
       geometry.faces.push(clone);
 
       face.ngonHelper = mesh;
-    });
+    };
 
     geometry.mergeVertices();
     geometry.computeVertexNormals();
@@ -216,7 +222,7 @@ meshtools.computeNgonHelpers = function(sourceMesh) {
 
     sourceMesh.add(mesh);
     mesh.visible = false;
-  });
+  }
 };
 
 meshtools.createShape = function(obj, hole) {
