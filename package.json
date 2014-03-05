@@ -18,7 +18,8 @@
     "istanbul": "*"
   },
   "peerDependencies" : {
-    "three": "~0.58.10"
+    "three": "~0.58.10",
+    "vec2": "*"
   },
   "scripts": {
     "test": "node_modules/mocha/bin/mocha test/test.js -R spec",
