@@ -2,6 +2,7 @@ var meshtools = window.tools = {};
 
 if (typeof require !== 'undefined') {
   var THREE = require('three');
+  var Vec2 = require('vec2');
 }
 
 var projector = new THREE.Projector();
