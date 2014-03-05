@@ -17,6 +17,9 @@
     "mocha": "1.x",
     "istanbul": "*"
   },
+  "peerDependencies" : {
+    "three": "~0.58.10"
+  },
   "scripts": {
     "test": "node_modules/mocha/bin/mocha test/test.js -R spec",
     "cover": "istanbul cover _mocha -- test/test.js -R spec",
