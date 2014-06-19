@@ -18,7 +18,7 @@
     "istanbul": "*"
   },
   "peerDependencies" : {
-    "three": "~0.58.10",
+    "three": "*",
     "vec2": "*"
   },
   "scripts": {
